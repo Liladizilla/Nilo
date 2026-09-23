@@ -1,0 +1,6 @@
+{
+  "name": "Nilo - Opportunity Intelligence Platform",
+  "description": "Universal opportunity intelligence engine discovering publicly observable commercial signals, constructing multi-signal evidence chains, and synthesizing actionable market opportunities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

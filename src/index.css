@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+
+    /* Typography Scale */
+    --text-display: normal 700 24px/32px var(--font-sans);
+    --text-h1: normal 600 18px/24px var(--font-sans);
+    --text-body-bold: normal 600 14px/20px var(--font-sans);
+    --text-body: normal 400 14px/20px var(--font-sans);
+    --text-caption: normal 500 11px/16px var(--font-mono);
+    --text-code: normal 400 12px/16px var(--font-mono);
+
+    /* Surface Layers */
+    --bg-app: #07090e; /* Deepest level: pure dark cosmic slate background */
+    --bg-surface: #0f131a; /* Structural cards, panels, containers */
+    --bg-elevated: #171c26; /* Hover states, active focus panels, dialog viewports */
+
+    /* Borders & Dividers */
+    --border-muted: #1e2530; /* Standard structural containment dividers */
+    --border-bright: #313d4f; /* Interactive boundaries and element groupings */
+    --border-focus: #3b82f6; /* User interactive choice indicator (True Blue) */
+
+    /* Pure Content Text Tiers */
+    --text-primary: #f8fafc; /* Crisp white-silver for core readouts and titles */
+    --text-secondary: #94a3b8; /* Muted gray-blue for descriptions and secondary text */
+    --text-muted: #475569; /* Deep charcoal-slate for structural anchors and IDs */
+
+    /* Functional Accents (Strict Utility Control, 95% rule) */
+    --accent-success: #10b981; /* Emerald: Used only for validated/active data links */
+    --accent-warning: #f59e0b; /* Amber: Used only for processing bottlenecks / unverified elements */
+    --accent-error: #ef4444; /* Crimson: Used only for broken evidence tracks / critical losses */
+    --accent-info: #06b6d4; /* Cyan: Used only for newly discovered commercial signals */
+
+    /* Strict 4px/8px Spacing Grid */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code, pre, kbd {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Subtle, sharp custom scrollbar matching dark slate surfaces */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #07090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2530;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #313d4f;
+}

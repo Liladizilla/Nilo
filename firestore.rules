@@ -1,0 +1,188 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'characharis01@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidUser(data) {
+      return data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 256;
+    }
+
+    function isValidEntity(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 256 &&
+             data.type is string && data.type in ['company', 'person', 'organization', 'product', 'service', 'project', 'location', 'other'];
+    }
+
+    function isValidSignal(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.entityId is string && data.entityId.size() <= 128 &&
+             data.signalCategory is string && data.signalCategory in ['DEMAND', 'GROWTH', 'PROBLEM', 'CHANGE', 'OPPORTUNITY', 'RESEARCH'] &&
+             data.title is string && data.title.size() <= 512 &&
+             data.confidence is number && data.confidence >= 0 && data.confidence <= 100;
+    }
+
+    function isValidEvent(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 512 &&
+             data.eventType is string && data.eventType.size() <= 128 &&
+             data.confidence is number;
+    }
+
+    function isValidOpportunity(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 512 &&
+             data.entityId is string && data.entityId.size() <= 128 &&
+             data.category is string && data.category.size() <= 128 &&
+             data.confidence is number && data.confidence >= 0 && data.confidence <= 100 &&
+             data.overallScore is number && data.overallScore >= 0 && data.overallScore <= 100 &&
+             data.status is string && data.status in ['new', 'investigating', 'saved', 'contacted', 'closed', 'archived'];
+    }
+
+    function isValidAction(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.opportunityId is string && data.opportunityId.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.type is string && data.type in ['investigated', 'contacted', 'meeting', 'proposal', 'saved', 'note', 'ignore'];
+    }
+
+    function isValidOutcome(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.opportunityId is string && data.opportunityId.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.outcome is string && data.outcome in ['won', 'lost', 'meeting', 'proposal', 'responded', 'no_response', 'not_relevant', 'unknown'];
+    }
+
+    function isValidSaved(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.opportunityId is string && data.opportunityId.size() <= 128;
+    }
+
+    function isValidSource(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 256 &&
+             data.type is string && data.type in ['web', 'rss', 'api', 'user_upload', 'directory', 'job_board', 'news'] &&
+             data.status is string && data.status in ['active', 'paused', 'error'];
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'targetProfile', 'updatedAt', 'preferences']);
+      allow delete: if isAdmin();
+
+      // Subcollection: Saved opportunities
+      match /saved/{savedId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidSaved(incoming());
+        allow update: if isOwner(userId) && isValidSaved(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      // Subcollection: Notification rules
+      match /rules/{ruleId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && incoming().userId == request.auth.uid;
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Entities Collection
+    match /entities/{entityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidEntity(incoming());
+      allow update: if isSignedIn() && isValidEntity(incoming()) && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['description', 'industry', 'location', 'website', 'aliases', 'signalCount', 'opportunityCount', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Signals Collection
+    match /signals/{signalId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidSignal(incoming());
+      allow update: if isSignedIn() && isValidSignal(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Events Collection
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidEvent(incoming());
+      allow update: if isSignedIn() && isValidEvent(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Opportunities Collection
+    match /opportunities/{opportunityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidOpportunity(incoming());
+      allow update: if isSignedIn() && isValidOpportunity(incoming()) && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'scoringBreakdown', 'overallScore', 'confidence', 'suggestedNextSteps', 'updatedAt', 'whyNow', 'whatHappened', 'whyItMatters'])
+      );
+      allow delete: if isAdmin();
+
+      // Actions Subcollection
+      match /actions/{actionId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidAction(incoming());
+        allow update: if isSignedIn() && isValidAction(incoming()) && existing().userId == request.auth.uid;
+        allow delete: if isOwner(existing().userId) || isAdmin();
+      }
+
+      // Outcomes Subcollection
+      match /outcomes/{outcomeId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidOutcome(incoming());
+        allow update: if isSignedIn() && isValidOutcome(incoming()) && existing().userId == request.auth.uid;
+        allow delete: if isOwner(existing().userId) || isAdmin();
+      }
+    }
+
+    // Intelligence Sources Collection
+    match /sources/{sourceId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidSource(incoming());
+      allow update: if isSignedIn() && isValidSource(incoming());
+      allow delete: if isAdmin();
+    }
+  }
+}

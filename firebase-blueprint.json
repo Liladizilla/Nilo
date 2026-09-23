@@ -1,0 +1,240 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with opportunity intelligence preferences and target configurations",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "role": { "type": "string", "enum": ["user", "admin", "analyst"] },
+        "targetProfile": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Entity": {
+      "title": "Entity",
+      "description": "Observed market entity (company, person, project, organization, product)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 256 },
+        "type": { "type": "string", "enum": ["company", "person", "organization", "product", "service", "project", "location", "other"] },
+        "description": { "type": "string", "maxLength": 2048 },
+        "industry": { "type": "string", "maxLength": 128 },
+        "location": { "type": "string", "maxLength": 128 },
+        "website": { "type": "string", "maxLength": 512 },
+        "aliases": { "type": "array" },
+        "signalCount": { "type": "number" },
+        "opportunityCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "type"]
+    },
+    "Signal": {
+      "title": "Signal",
+      "description": "Market signal derived from an observed public fact",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "entityId": { "type": "string", "maxLength": 128 },
+        "entityName": { "type": "string", "maxLength": 256 },
+        "sourceId": { "type": "string", "maxLength": 128 },
+        "sourceTitle": { "type": "string", "maxLength": 256 },
+        "sourceUrl": { "type": "string", "maxLength": 512 },
+        "signalCategory": { "type": "string", "enum": ["DEMAND", "GROWTH", "PROBLEM", "CHANGE", "OPPORTUNITY", "RESEARCH"] },
+        "signalType": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 512 },
+        "description": { "type": "string", "maxLength": 4096 },
+        "observedAt": { "type": "string" },
+        "detectedAt": { "type": "string" },
+        "confidence": { "type": "number" },
+        "facts": { "type": "array" },
+        "rawReference": { "type": "string", "maxLength": 2048 },
+        "evidenceIds": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "entityId", "signalCategory", "title", "confidence"]
+    },
+    "MarketEvent": {
+      "title": "MarketEvent",
+      "description": "Synthesized commercial event combining multiple signals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 512 },
+        "eventType": { "type": "string", "maxLength": 128 },
+        "entityIds": { "type": "array" },
+        "triggeringSignalIds": { "type": "array" },
+        "confidence": { "type": "number" },
+        "summary": { "type": "string", "maxLength": 4096 },
+        "startDate": { "type": "string" },
+        "detectedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "eventType", "confidence"]
+    },
+    "Opportunity": {
+      "title": "Opportunity",
+      "description": "Structured commercial opportunity hypothesis with transparent evidence chain",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 512 },
+        "entityId": { "type": "string", "maxLength": 128 },
+        "entityName": { "type": "string", "maxLength": 256 },
+        "entityType": { "type": "string", "maxLength": 64 },
+        "category": { "type": "string", "maxLength": 128 },
+        "potentialServices": { "type": "array" },
+        "potentialBuyers": { "type": "array" },
+        "trigger": { "type": "string", "maxLength": 1024 },
+        "status": { "type": "string", "enum": ["new", "investigating", "saved", "contacted", "closed", "archived"] },
+        "confidence": { "type": "number" },
+        "overallScore": { "type": "number" },
+        "scoringBreakdown": { "type": "object" },
+        "whyNow": { "type": "string", "maxLength": 4096 },
+        "whatHappened": { "type": "string", "maxLength": 4096 },
+        "whyItMatters": { "type": "string", "maxLength": 4096 },
+        "suggestedNextSteps": { "type": "array" },
+        "signalIds": { "type": "array" },
+        "eventIds": { "type": "array" },
+        "facts": { "type": "array" },
+        "evidence": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "entityId", "category", "confidence", "overallScore", "status"]
+    },
+    "OpportunityAction": {
+      "title": "OpportunityAction",
+      "description": "Action logged by user on an opportunity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "opportunityId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["investigated", "contacted", "meeting", "proposal", "saved", "note", "ignore"] },
+        "channel": { "type": "string", "maxLength": 64 },
+        "notes": { "type": "string", "maxLength": 2048 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "opportunityId", "userId", "type"]
+    },
+    "OpportunityOutcome": {
+      "title": "OpportunityOutcome",
+      "description": "Outcome record fed back into intelligence model for learning and ranking calibration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "opportunityId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "outcome": { "type": "string", "enum": ["won", "lost", "meeting", "proposal", "responded", "no_response", "not_relevant", "unknown"] },
+        "dealValue": { "type": "number" },
+        "winReason": { "type": "string", "maxLength": 1024 },
+        "lossReason": { "type": "string", "maxLength": 1024 },
+        "signalsThatPredictedSuccess": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "opportunityId", "userId", "outcome"]
+    },
+    "SavedOpportunity": {
+      "title": "SavedOpportunity",
+      "description": "User bookmarked opportunity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "opportunityId": { "type": "string", "maxLength": 128 },
+        "opportunityTitle": { "type": "string", "maxLength": 512 },
+        "entityName": { "type": "string", "maxLength": 256 },
+        "tags": { "type": "array" },
+        "notes": { "type": "string", "maxLength": 2048 },
+        "savedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "opportunityId"]
+    },
+    "IntelligenceSource": {
+      "title": "IntelligenceSource",
+      "description": "Permitted source configuration for continuous discovery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 256 },
+        "type": { "type": "string", "enum": ["web", "rss", "api", "user_upload", "directory", "job_board", "news"] },
+        "url": { "type": "string", "maxLength": 512 },
+        "status": { "type": "string", "enum": ["active", "paused", "error"] },
+        "complianceNotes": { "type": "string", "maxLength": 1024 },
+        "recordsCount": { "type": "number" },
+        "signalsGenerated": { "type": "number" },
+        "lastRunAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "type", "status"]
+    },
+    "NotificationRule": {
+      "title": "NotificationRule",
+      "description": "Automated alert trigger rule for users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 256 },
+        "industry": { "type": "string", "maxLength": 128 },
+        "minConfidence": { "type": "number" },
+        "location": { "type": "string", "maxLength": 128 },
+        "signalType": { "type": "string", "maxLength": 128 },
+        "channel": { "type": "string", "enum": ["in_app", "email"] },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "channel"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile with preferences and target configurations"
+    },
+    "/entities/{entityId}": {
+      "schema": "Entity",
+      "description": "Commercial entities monitored by Nilo"
+    },
+    "/signals/{signalId}": {
+      "schema": "Signal",
+      "description": "Publicly observed market signals"
+    },
+    "/events/{eventId}": {
+      "schema": "MarketEvent",
+      "description": "Aggregated market events"
+    },
+    "/opportunities/{opportunityId}": {
+      "schema": "Opportunity",
+      "description": "Evidence-backed commercial opportunities"
+    },
+    "/opportunities/{opportunityId}/actions/{actionId}": {
+      "schema": "OpportunityAction",
+      "description": "Actions taken on an opportunity"
+    },
+    "/opportunities/{opportunityId}/outcomes/{outcomeId}": {
+      "schema": "OpportunityOutcome",
+      "description": "Recorded outcomes for intelligence loop"
+    },
+    "/users/{userId}/saved/{savedId}": {
+      "schema": "SavedOpportunity",
+      "description": "Opportunities saved by the user"
+    },
+    "/users/{userId}/rules/{ruleId}": {
+      "schema": "NotificationRule",
+      "description": "Notification alert triggers set by user"
+    },
+    "/sources/{sourceId}": {
+      "schema": "IntelligenceSource",
+      "description": "Monitored intelligence sources"
+    }
+  }
+}
